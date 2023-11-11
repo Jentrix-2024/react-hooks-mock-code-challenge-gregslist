@@ -1,21 +1,50 @@
-import React from "react";
+import React, { useState } from "react";
 
-function ListingCard() {
+function ListingCard({ listing, onDelete }) {
+  const [isFavorite, setIsFavorite] = useState(listing.favorite);
+
+  const handleFavoriteToggle = () => {
+    // Toggle the favorite status
+    setIsFavorite(!isFavorite);
+  };
+
+  const handleDelete = () => {
+    // Perform the delete request and call the provided onDelete callback
+    fetch(`http://localhost:3000/listings/${listing.id}`, {
+      method: 'DELETE',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+    })
+      .then(response => {
+        if (!response.ok) {
+          throw new Error(`HTTP error! Status: ${response.status}`);
+        }
+        // Call the provided onDelete callback to update the state in the parent component
+        onDelete(listing.id);
+      })
+      .catch(error => {
+        // Handle errors here
+        console.error('Error deleting listing:', error);
+      });
+  };
+
   return (
     <li className="card">
       <div className="image">
-        <span className="price">$0</span>
-        <img src={"https://via.placeholder.com/300x300"} alt={"description"} />
+        <span className="price">${listing.price}</span>
+        <img src={listing.image} alt={listing.description} />
       </div>
       <div className="details">
-        {true ? (
-          <button className="emoji-button favorite active">★</button>
-        ) : (
-          <button className="emoji-button favorite">☆</button>
-        )}
-        <strong>{"description"}</strong>
-        <span> · {"location"}</span>
-        <button className="emoji-button delete">🗑</button>
+        <button
+          className={`emoji-button favorite ${isFavorite ? 'active' : ''}`}
+          onClick={handleFavoriteToggle}
+        >
+          {isFavorite ? '★' : '☆'}
+        </button>
+        <strong>{listing.description}</strong>
+        <span> · {listing.location}</span>
+        <button className="emoji-button delete" onClick={handleDelete}>🗑</button>
       </div>
     </li>
   );
